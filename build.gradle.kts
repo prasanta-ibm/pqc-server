@@ -8,6 +8,14 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    maven {
+        name = "webmethodsArtifactory"
+        url = uri("https://na.artifactory.swg-devops.com/artifactory/hyc-webmethods-team-build-snapshot-maven-virtual/")
+        credentials {
+            username = project.findProperty("webmethodsArtifactoryUsername") as String? ?: System.getenv("PQC_USERNAME")
+            password = project.findProperty("webmethodsArtifactoryPassword") as String? ?: System.getenv("PQC_PASSWORD")
+        }
+    }
 }
 
 dependencies {
