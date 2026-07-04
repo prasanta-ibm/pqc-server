@@ -82,6 +82,14 @@ public class TlsApp {
     return properties;
   }
 
+  /**
+   * Load a keystore from provided file
+   *
+   * @param storePath Path to the store file
+   * @param storePassword Password of the store file
+   * @return KeyStore object
+   * @throws Exception if keystore cannot be loaded
+   */
   public KeyStore getKeyStore(String storePath, String storePassword) throws Exception {
     KeyStoreManager ksMgr = new KeyStoreManager();
     if (storePath != null && !storePath.isEmpty()) {
