@@ -6,12 +6,13 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyStore;
 import java.util.Properties;
 
 public class TlsApp {
   private static final Logger logger = LoggerFactory.getLogger(TlsApp.class);
 
-  public void start(String configPath) throws IOException {
+  public void start(String configPath) throws Exception {
     Properties config = loadConfiguration(configPath);
 
     // Read configuration values
@@ -39,6 +40,16 @@ public class TlsApp {
     logger.info("Starting TLS Server with configuration:");
     logger.info("  Port: {}\n  Key Alias: {}\n  Keystore: {}\n  Truststore: {}",
         port, keyAlias, keyStorePath, trustStorePath);
+
+    KeyStore keyStore = getKeyStore(keyStorePath, keyStorePassword);
+    if (keyStore == null) {
+      throw new IllegalArgumentException("invalid keystore");
+    }
+
+    KeyStore trustStore = getKeyStore(trustStorePath, trustStorePassword);
+    if (trustStore == null) {
+      trustStore = keyStore;
+    }
   }
 
   /**
@@ -71,7 +82,15 @@ public class TlsApp {
     return properties;
   }
 
-  public static void main(String[] args) throws IOException {
+  public KeyStore getKeyStore(String storePath, String storePassword) throws Exception {
+    KeyStoreManager ksMgr = new KeyStoreManager();
+    if (storePath != null && !storePath.isEmpty()) {
+      return ksMgr.loadKeyStore(storePath, storePassword);
+    }
+    return null;
+  }
+
+  public static void main(String[] args) throws Exception {
     logger.info("Starting the PQC Server App");
 
     // Load configuration from properties file in conf/ directory
