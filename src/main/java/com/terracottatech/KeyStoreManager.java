@@ -14,6 +14,7 @@ import java.security.cert.CertificateException;
 
 public class KeyStoreManager {
   private static final Logger logger = LoggerFactory.getLogger(KeyStoreManager.class);
+  private static final String[] keystoreTypes = {"PKCS12", "JKS", "JCEKS", "BKS"};
 
   /**
    * Detects keystore type from file extension
@@ -64,15 +65,39 @@ public class KeyStoreManager {
     // Try to detect keystore type from file extension
     String keystoreType = detectKeystoreType(filePath);
 
+    KeyStore keyStore;
+    Exception lastException = null;
+
+    // Try detected type first, then all other keystore types
+    String[] typesToTry = new String[keystoreTypes.length];
+    typesToTry[0] = keystoreType;
+    int index = 1;
+    for (String type : keystoreTypes) {
+      if (!type.equals(keystoreType)) {
+        typesToTry[index++] = type;
+      }
+    }
+
     logger.info("Attempting to load keystore from: {} with type: {}", filePath, keystoreType);
 
-    try {
-      KeyStore keyStore = loadKeyStore(file, password, keystoreType);
-      logger.info("Successfully loaded keystore from: {} using type: {}", filePath, keystoreType);
-      return keyStore;
-    } catch (Exception e) {
-      logger.warn("Failed to load keystore with type {}: {}", keystoreType, e.getMessage());
-      return null;
+    for (String type : typesToTry) {
+      // Try the detected type first
+      try {
+        keyStore = loadKeyStore(file, password, type);
+        logger.info("Successfully loaded keystore from: {} using type: {}", filePath, type);
+        return keyStore;
+      } catch (Exception e) {
+        lastException = e;
+        logger.warn("Failed to load keystore with type {}: {}", type, e.getMessage());
+      }
     }
+
+    // If all attempts failed, throw the last exception with helpful message
+    throw new Exception(
+        "Failed to load keystore from: " + filePath +
+            ". Tried types: " + String.join(", ", typesToTry) +
+            ". Last error: " + lastException.getMessage(),
+        lastException
+    );
   }
 }
