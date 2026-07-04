@@ -37,8 +37,8 @@ public class TlsApp {
     String trustStorePassword = config.getProperty("truststore.password", keyStorePassword);
 
     logger.info("Starting TLS Server with configuration:");
-    logger.info("  Port: {}\n  Keystore: {}\n  Key Alias: {}\n  Truststore: {}",
-        port, keyStorePath, keyAlias, trustStorePath);
+    logger.info("  Port: {}\n  Key Alias: {}\n  Keystore: {}\n  Truststore: {}",
+        port, keyAlias, keyStorePath, trustStorePath);
   }
 
   /**
@@ -73,5 +73,11 @@ public class TlsApp {
 
   public static void main(String[] args) throws IOException {
     logger.info("Starting the PQC Server App");
+
+    // Load configuration from properties file in conf/ directory
+    String configPath = "conf/server.properties";
+
+    TlsApp app = new TlsApp();
+    app.start(configPath);
   }
 }
