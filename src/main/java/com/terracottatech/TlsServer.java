@@ -26,6 +26,30 @@ public class TlsServer {
     this.keyAlias = keyAlias;
   }
 
+  public void start() throws Exception {
+    // Initialize SSL context
+    SSLContext sslContext = createSSLContext();
+  }
+
+  private SSLContext createSSLContext() throws Exception {
+    // Create custom KeyManager that uses the specified alias
+    X509KeyManager customKeyManager = createCustomKeyManager();
+
+    // Initialize TrustManagerFactory with the truststore
+    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(PKIX_ALGORITHM);
+    trustManagerFactory.init(trustStore);
+
+    // Create and initialize SSL context
+    SSLContext sslContext = SSLContext.getInstance("TLSv1.3" /*"TLS"*/);
+    sslContext.init(
+        new KeyManager[]{customKeyManager},
+        trustManagerFactory.getTrustManagers(),
+        new SecureRandom()
+    );
+
+    return sslContext;
+  }
+
   /**
    * Creates a custom X509KeyManager that uses the specified key alias
    * Uses PKIX algorithm to support ML-DSA (post-quantum) certificates
@@ -139,7 +163,6 @@ public class TlsServer {
       throw new IllegalStateException("Failed to validate keystore alias: " + keyAlias, e);
     }
   }
-
   /**
    * Custom X509KeyManager that always uses a specific alias
    */
